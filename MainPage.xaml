@@ -1,46 +1,75 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewmodel="clr-namespace:MauiStartup.ViewModels"
     x:Class="MauiStartup.MainPage"
-    x:DataType="viewmodel:MainPageModel">
+    x:DataType="viewmodel:MainPageModel"
+    Title="Профіль">
 
     <ScrollView>
         <VerticalStackLayout
             Padding="30"
-            Spacing="20"
-            VerticalOptions="Center">
+            Spacing="18">
 
             <Label
-                Text="Перевірка реєстрації"
-                FontSize="28"
+                Text="Google-профіль"
+                FontSize="30"
                 FontAttributes="Bold"
                 HorizontalOptions="Center" />
 
-            <Label
-                Text="Введіть електронну пошту та пароль"
-                FontSize="16"
-                HorizontalOptions="Center" />
+            <Border
+                Padding="18"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 16">
 
-            <Entry
-                Placeholder="Електронна пошта"
-                Keyboard="Email"
-                Text="{Binding Email}" />
+                <VerticalStackLayout Spacing="12">
+                    <Image
+                        Source="{Binding GoogleUserPicture}"
+                        HeightRequest="96"
+                        WidthRequest="96"
+                        Aspect="AspectFill"
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsAuthenticated}" />
 
-            <Entry
-                Placeholder="Пароль"
-                IsPassword="True"
-                Text="{Binding Password}" />
+                    <Label
+                        Text="{Binding GoogleUserName}"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"
+                        IsVisible="{Binding IsAuthenticated}" />
+
+                    <Label
+                        Text="{Binding GoogleUserEmail}"
+                        FontSize="15"
+                        HorizontalTextAlignment="Center"
+                        IsVisible="{Binding IsAuthenticated}" />
+
+                    <Label
+                        Text="{Binding AuthStatusText}"
+                        HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
 
             <Button
-                Text="Перевірити реєстрацію"
-                Command="{Binding CheckRegistrationCommand}" />
+                Text="Увійти через Google"
+                Command="{Binding GoogleLoginCommand}"
+                IsVisible="{Binding IsAuthenticated, Converter={StaticResource InvertedBoolConverter}}" />
+
+            <Button
+                Text="Вийти з профілю"
+                Command="{Binding GoogleLogoutCommand}"
+                IsVisible="{Binding IsAuthenticated}" />
+
+            <Label
+                Text="Після входу стають доступними додавання фільмів та керування улюбленими."
+                FontSize="14"
+                HorizontalTextAlignment="Center" />
 
             <Label
                 Text="{Binding Message}"
-                FontSize="18"
+                FontSize="16"
                 HorizontalOptions="Center"
                 HorizontalTextAlignment="Center" />
 
