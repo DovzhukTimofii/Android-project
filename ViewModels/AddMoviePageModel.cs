@@ -7,7 +7,8 @@ namespace MauiStartup.ViewModels;
 
 public partial class AddMoviePageModel : ObservableObject
 {
-    private readonly UserMoviesService _userMoviesService;
+    private readonly MovieService _movieService;
+    private FileResult? _selectedPoster;
 
     public NewMovieDto Movie { get; } = new();
 
@@ -15,13 +16,11 @@ public partial class AddMoviePageModel : ObservableObject
     private string message = string.Empty;
 
     public event EventHandler<Movie>? Saved;
-
     public event EventHandler? Cancelled;
 
-    public AddMoviePageModel(
-        UserMoviesService userMoviesService)
+    public AddMoviePageModel(MovieService movieService)
     {
-        _userMoviesService = userMoviesService;
+        _movieService = movieService;
     }
 
     [RelayCommand]
@@ -31,64 +30,30 @@ public partial class AddMoviePageModel : ObservableObject
         {
             Message = string.Empty;
 
-            var permission =
-                await Permissions.RequestAsync<
-                    Permissions.StorageRead>();
+            var result = await FilePicker.Default.PickAsync(
+                new PickOptions
+                {
+                    PickerTitle = "Оберіть постер фільму",
+                    FileTypes = FilePickerFileType.Images
+                });
 
-            if (permission != PermissionStatus.Granted)
+            if (result == null)
             {
-                Message =
-                    "Доступ до файлів не надано.";
                 return;
             }
 
-            var result =
-                await FilePicker.Default.PickAsync(
-                    new PickOptions
-                    {
-                        PickerTitle =
-                            "Оберіть постер фільму",
-
-                        FileTypes =
-                            FilePickerFileType.Images
-                    });
-
-            if (result == null)
-                return;
-
-
-            var extension =
-                Path.GetExtension(result.FileName);
-
-            var fileName =
-                $"poster_{Guid.NewGuid():N}{extension}";
-
-            var localPath =
-                Path.Combine(
-                    FileSystem.AppDataDirectory,
-                    fileName);
-
-            await using var source =
-                await result.OpenReadAsync();
-
-            await using var destination =
-                File.Create(localPath);
-
-            await source.CopyToAsync(destination);
-
-            Movie.PosterPath = localPath;
-
+            _selectedPoster = result;
+            Movie.PosterPath = result.FullPath;
             Message = "Постер обрано.";
         }
         catch (Exception ex)
         {
-            Message =
-                $"Помилка вибору зображення: {ex.Message}";
+            Message = $"Помилка вибору зображення: {ex.Message}";
         }
     }
 
     [RelayCommand]
-    private void Save()
+    private async Task SaveAsync()
     {
         Message = string.Empty;
 
@@ -98,62 +63,39 @@ public partial class AddMoviePageModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(Movie.ReleaseYear))
+        if (!int.TryParse(Movie.ReleaseYear, out var year))
         {
-            Message = "Введіть рік випуску.";
+            Message = "Рік повинен бути числом.";
             return;
         }
 
-        if (!int.TryParse(
-                Movie.ReleaseYear,
-                out var year))
+        if (year < 1888 || year > DateTime.Now.Year + 5)
         {
-            Message =
-                "Рік повинен бути числом.";
+            Message = "Вкажіть коректний рік випуску.";
             return;
         }
 
-        if (year < 1888 ||
-            year > DateTime.Now.Year + 5)
-        {
-            Message =
-                "Вкажіть коректний рік випуску.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(
-                Movie.PosterPath))
+        if (_selectedPoster == null)
         {
             Message = "Оберіть постер.";
             return;
         }
 
-        var createdMovie = new Movie
+        try
         {
-            Id =
-                $"user-{Guid.NewGuid():N}",
+            await using var stream = await _selectedPoster.OpenReadAsync();
 
-            Title =
-                Movie.Title.Trim(),
+            var createdMovie = await _movieService.AddUserMovieAsync(
+                Movie,
+                stream,
+                _selectedPoster.FileName);
 
-            Description =
-                string.IsNullOrWhiteSpace(
-                    Movie.Description)
-                    ? "Опис відсутній."
-                    : Movie.Description.Trim(),
-
-            ReleaseDate =
-                year.ToString(),
-
-            ImageUrl =
-                Movie.PosterPath,
-
-            IsUserCreated = true
-        };
-
-        _userMoviesService.AddMovie(createdMovie);
-
-        Saved?.Invoke(this, createdMovie);
+            Saved?.Invoke(this, createdMovie);
+        }
+        catch (Exception ex)
+        {
+            Message = $"Помилка збереження: {ex.Message}";
+        }
     }
 
     [RelayCommand]
