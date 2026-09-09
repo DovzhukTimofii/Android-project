@@ -19,25 +19,15 @@ public partial class MoviesPage : ContentPage
         base.OnAppearing();
 
         MoviesCollection.SelectedItem = null;
-
-        if (_viewModel.Movies.Count == 0 &&
-            !_viewModel.IsFavoritesMode)
-        {
-            await _viewModel.LoadMoviesAsync();
-        }
+        await _viewModel.InitializeAsync();
     }
 
     private void OnSwipeStarted(
         object sender,
         SwipeStartedEventArgs e)
     {
-        /*
-         * Во время свайпа запрещаем CollectionView
-         * трактовать жест как выбор фильма.
-         */
         MoviesCollection.SelectedItem = null;
-        MoviesCollection.SelectionMode =
-            SelectionMode.None;
+        MoviesCollection.SelectionMode = SelectionMode.None;
     }
 
     private void OnSwipeEnded(
@@ -45,8 +35,6 @@ public partial class MoviesPage : ContentPage
         SwipeEndedEventArgs e)
     {
         MoviesCollection.SelectedItem = null;
-
-        MoviesCollection.SelectionMode =
-            SelectionMode.Single;
+        MoviesCollection.SelectionMode = SelectionMode.Single;
     }
 }
