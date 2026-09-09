@@ -1,35 +1,21 @@
-using MauiStartup.Services;
+using MauiStartup.ViewModels;
 
 namespace MauiStartup.Pages;
 
 public partial class ProfilePage : ContentPage
 {
-    private readonly AppStateService _appStateService;
+    private readonly ProfilePageModel _viewModel;
 
-    public ProfilePage(AppStateService appStateService)
+    public ProfilePage(ProfilePageModel viewModel)
     {
         InitializeComponent();
-
-        _appStateService = appStateService;
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
-        if (_appStateService.IsRegistered)
-        {
-            StatusLabel.Text = "Вітаємо! Користувач успішно зареєстрований.";
-
-            EmailLabel.Text = $"Електронна пошта: {_appStateService.UserEmail}";
-            EmailLabel.IsVisible = true;
-        }
-        else
-        {
-            StatusLabel.Text =
-                "Для перегляду контенту необхідно спочатку зареєструватися.";
-
-            EmailLabel.IsVisible = false;
-        }
+        _viewModel.Refresh();
     }
 }
