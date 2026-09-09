@@ -1,4 +1,5 @@
 using MauiStartup.Models;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -7,7 +8,7 @@ namespace MauiStartup.Services;
 
 public class AuthService
 {
-    // Replace this value with the OAuth client ID created for this app in Google Cloud.
+    // Replace with the OAuth client ID created for this app in Google Cloud.
     public const string GoogleClientId = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
 
     public const string RedirectScheme = "com.companyname.mauistartup";
@@ -15,6 +16,7 @@ public class AuthService
 
     private const string AuthorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
     private const string TokenEndpoint = "https://oauth2.googleapis.com/token";
+    private const string UserInfoEndpoint = "https://openidconnect.googleapis.com/v1/userinfo";
 
     private const string RefreshTokenKey = "google_refresh_token";
     private const string AccessTokenKey = "google_access_token";
@@ -29,6 +31,7 @@ public class AuthService
     private TaskCompletionSource<Uri?>? _callbackSource;
     private string? _pendingState;
     private string? _pendingCodeVerifier;
+    private bool _initialized;
 
     public AuthUser? CurrentUser { get; private set; }
     public bool IsAuthenticated => CurrentUser != null;
@@ -43,24 +46,14 @@ public class AuthService
 
     public async Task InitializeAsync()
     {
+        if (_initialized) return;
+        _initialized = true;
+
         LoadPublicProfile();
-
         var refreshToken = await SecureStorage.Default.GetAsync(RefreshTokenKey);
-        if (string.IsNullOrWhiteSpace(refreshToken))
-        {
-            if (CurrentUser != null)
-            {
-                ClearPublicProfile();
-                CurrentUser = null;
-            }
 
-            AuthenticationChanged?.Invoke(this, EventArgs.Empty);
-            return;
-        }
-
-        if (!IsConfigured)
+        if (string.IsNullOrWhiteSpace(refreshToken) || !IsConfigured)
         {
-            // Keep the UI signed out until a real Google OAuth client ID is configured.
             CurrentUser = null;
             AuthenticationChanged?.Invoke(this, EventArgs.Empty);
             return;
@@ -115,20 +108,14 @@ public class AuthService
             BrowserLaunchMode.SystemPreferred);
 
         var callbackUri = await _callbackSource.Task;
-        if (callbackUri == null)
-        {
-            throw new InvalidOperationException("Google не повернув результат авторизації.");
-        }
-
-        var parameters = ParseQuery(callbackUri.Query);
+        var parameters = ParseQuery(callbackUri?.Query ?? string.Empty);
 
         if (parameters.TryGetValue("error", out var error))
         {
             throw new InvalidOperationException($"Google OAuth: {error}");
         }
 
-        if (!parameters.TryGetValue("state", out var returnedState) ||
-            returnedState != _pendingState)
+        if (!parameters.TryGetValue("state", out var returnedState) || returnedState != _pendingState)
         {
             throw new InvalidOperationException("Некоректний OAuth state.");
         }
@@ -143,25 +130,21 @@ public class AuthService
 
     public void HandleOAuthCallback(Uri uri)
     {
-        if (!string.Equals(uri.Scheme, RedirectScheme, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(uri.Scheme, RedirectScheme, StringComparison.OrdinalIgnoreCase))
         {
-            return;
+            _callbackSource?.TrySetResult(uri);
         }
-
-        _callbackSource?.TrySetResult(uri);
     }
 
-    public async Task LogoutAsync()
+    public Task LogoutAsync()
     {
         SecureStorage.Default.Remove(RefreshTokenKey);
         SecureStorage.Default.Remove(AccessTokenKey);
         SecureStorage.Default.Remove(IdTokenKey);
-
         ClearPublicProfile();
         CurrentUser = null;
-
-        await Task.CompletedTask;
         AuthenticationChanged?.Invoke(this, EventArgs.Empty);
+        return Task.CompletedTask;
     }
 
     private async Task ExchangeCodeAsync(string code, string codeVerifier)
@@ -175,13 +158,9 @@ public class AuthService
             ["grant_type"] = "authorization_code"
         };
 
-        using var response = await _httpClient.PostAsync(
-            TokenEndpoint,
-            new FormUrlEncodedContent(body));
-
+        using var response = await _httpClient.PostAsync(TokenEndpoint, new FormUrlEncodedContent(body));
         var json = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
-
         await StoreTokenResponseAsync(json, preserveExistingRefreshToken: false);
     }
 
@@ -194,19 +173,13 @@ public class AuthService
             ["grant_type"] = "refresh_token"
         };
 
-        using var response = await _httpClient.PostAsync(
-            TokenEndpoint,
-            new FormUrlEncodedContent(body));
-
+        using var response = await _httpClient.PostAsync(TokenEndpoint, new FormUrlEncodedContent(body));
         var json = await response.Content.ReadAsStringAsync();
         response.EnsureSuccessStatusCode();
-
         await StoreTokenResponseAsync(json, preserveExistingRefreshToken: true);
     }
 
-    private async Task StoreTokenResponseAsync(
-        string json,
-        bool preserveExistingRefreshToken)
+    private async Task StoreTokenResponseAsync(string json, bool preserveExistingRefreshToken)
     {
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
@@ -215,16 +188,16 @@ public class AuthService
         var idToken = GetString(root, "id_token");
         var refreshToken = GetString(root, "refresh_token");
 
-        if (!string.IsNullOrWhiteSpace(accessToken))
+        if (string.IsNullOrWhiteSpace(accessToken))
         {
-            await SecureStorage.Default.SetAsync(AccessTokenKey, accessToken);
+            throw new InvalidOperationException("Google не повернув access token.");
         }
+
+        await SecureStorage.Default.SetAsync(AccessTokenKey, accessToken);
 
         if (!string.IsNullOrWhiteSpace(idToken))
         {
             await SecureStorage.Default.SetAsync(IdTokenKey, idToken);
-            CurrentUser = ParseIdToken(idToken);
-            SavePublicProfile(CurrentUser);
         }
 
         if (!string.IsNullOrWhiteSpace(refreshToken))
@@ -236,32 +209,29 @@ public class AuthService
             SecureStorage.Default.Remove(RefreshTokenKey);
         }
 
-        if (CurrentUser == null)
-        {
-            throw new InvalidOperationException("Не вдалося отримати профіль Google.");
-        }
-
+        CurrentUser = await LoadUserProfileAsync(accessToken);
+        SavePublicProfile(CurrentUser);
         AuthenticationChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    private static AuthUser ParseIdToken(string idToken)
+    private async Task<AuthUser> LoadUserProfileAsync(string accessToken)
     {
-        var parts = idToken.Split('.');
-        if (parts.Length < 2)
-        {
-            throw new InvalidOperationException("Google повернув некоректний ID token.");
-        }
+        using var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        var payloadBytes = Base64UrlDecode(parts[1]);
-        using var document = JsonDocument.Parse(payloadBytes);
-        var payload = document.RootElement;
+        using var response = await _httpClient.SendAsync(request);
+        var json = await response.Content.ReadAsStringAsync();
+        response.EnsureSuccessStatusCode();
+
+        using var document = JsonDocument.Parse(json);
+        var profile = document.RootElement;
 
         return new AuthUser
         {
-            Id = GetString(payload, "sub"),
-            Name = GetString(payload, "name"),
-            Email = GetString(payload, "email"),
-            PictureUrl = GetString(payload, "picture")
+            Id = GetString(profile, "sub"),
+            Name = GetString(profile, "name"),
+            Email = GetString(profile, "email"),
+            PictureUrl = GetString(profile, "picture")
         };
     }
 
@@ -299,54 +269,29 @@ public class AuthService
         Preferences.Default.Remove(UserPictureKey);
     }
 
-    private static string GetString(JsonElement element, string propertyName)
-    {
-        return element.TryGetProperty(propertyName, out var property)
+    private static string GetString(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var property)
             ? property.GetString() ?? string.Empty
             : string.Empty;
-    }
 
-    private static Dictionary<string, string> ParseQuery(string query)
-    {
-        return query
-            .TrimStart('?')
+    private static Dictionary<string, string> ParseQuery(string query) =>
+        query.TrimStart('?')
             .Split('&', StringSplitOptions.RemoveEmptyEntries)
             .Select(part => part.Split('=', 2))
             .Where(parts => parts.Length == 2)
             .ToDictionary(
                 parts => Uri.UnescapeDataString(parts[0]),
                 parts => Uri.UnescapeDataString(parts[1].Replace('+', ' ')));
-    }
 
-    private static string CreateRandomUrlSafeString(int byteCount)
-    {
-        return Base64UrlEncode(RandomNumberGenerator.GetBytes(byteCount));
-    }
+    private static string CreateRandomUrlSafeString(int byteCount) =>
+        Base64UrlEncode(RandomNumberGenerator.GetBytes(byteCount));
 
-    private static string CreateCodeChallenge(string verifier)
-    {
-        var hash = SHA256.HashData(Encoding.ASCII.GetBytes(verifier));
-        return Base64UrlEncode(hash);
-    }
+    private static string CreateCodeChallenge(string verifier) =>
+        Base64UrlEncode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
 
-    private static string Base64UrlEncode(byte[] bytes)
-    {
-        return Convert.ToBase64String(bytes)
+    private static string Base64UrlEncode(byte[] bytes) =>
+        Convert.ToBase64String(bytes)
             .TrimEnd('=')
             .Replace('+', '-')
             .Replace('/', '_');
-    }
-
-    private static byte[] Base64UrlDecode(string value)
-    {
-        var normalized = value.Replace('-', '+').Replace('_', '/');
-        normalized += normalized.Length % 4 switch
-        {
-            2 => "==",
-            3 => "=",
-            _ => string.Empty
-        };
-
-        return Convert.FromBase64String(normalized);
-    }
 }
