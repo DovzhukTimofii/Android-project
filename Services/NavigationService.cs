@@ -6,43 +6,38 @@ namespace MauiStartup.Services;
 
 public class NavigationService
 {
-    private readonly FavoritesService _favoritesService;
+    private readonly MovieService _movieService;
     private readonly IServiceProvider _serviceProvider;
 
     public NavigationService(
-        FavoritesService favoritesService,
+        MovieService movieService,
         IServiceProvider serviceProvider)
     {
-        _favoritesService = favoritesService;
+        _movieService = movieService;
         _serviceProvider = serviceProvider;
     }
 
     private Page? GetRootPage()
     {
         if (Application.Current?.Windows.Count == 0)
+        {
             return null;
+        }
 
-        return Application
-            .Current
-            .Windows[0]
-            .Page;
+        return Application.Current.Windows[0].Page;
     }
 
-    public async Task OpenMovieDetailsAsync(
-        Movie movie)
+    public async Task OpenMovieDetailsAsync(Movie movie)
     {
         var rootPage = GetRootPage();
 
         if (rootPage == null)
+        {
             return;
+        }
 
-        var page =
-            new MovieDetailsPage(
-                movie,
-                _favoritesService);
-
-        await rootPage.Navigation
-            .PushModalAsync(page);
+        var page = new MovieDetailsPage(movie, _movieService);
+        await rootPage.Navigation.PushModalAsync(page);
     }
 
     public async Task OpenAddMovieAsync()
@@ -50,13 +45,11 @@ public class NavigationService
         var rootPage = GetRootPage();
 
         if (rootPage == null)
+        {
             return;
+        }
 
-        var page =
-            _serviceProvider
-                .GetRequiredService<AddMoviePage>();
-
-        await rootPage.Navigation
-            .PushModalAsync(page);
+        var page = _serviceProvider.GetRequiredService<AddMoviePage>();
+        await rootPage.Navigation.PushModalAsync(page);
     }
 }
