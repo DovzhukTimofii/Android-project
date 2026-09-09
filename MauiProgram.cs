@@ -1,4 +1,4 @@
-﻿using MauiStartup.Pages;
+using MauiStartup.Pages;
 using MauiStartup.Services;
 using MauiStartup.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -28,6 +28,7 @@ public static class MauiProgram
             BaseAddress = new Uri("https://api.imdbapi.dev/")
         });
 
+        builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<StorageService>();
         builder.Services.AddSingleton<MovieService>();
         builder.Services.AddSingleton<NavigationService>();
