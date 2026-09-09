@@ -9,21 +9,14 @@
     Title="Профіль">
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="30"
-            Spacing="18">
-
+        <VerticalStackLayout Padding="30" Spacing="18">
             <Label
                 Text="Google-профіль"
                 FontSize="30"
                 FontAttributes="Bold"
                 HorizontalOptions="Center" />
 
-            <Border
-                Padding="18"
-                StrokeThickness="1"
-                StrokeShape="RoundRectangle 16">
-
+            <Border Padding="18" StrokeThickness="1" StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="12">
                     <Image
                         Source="{Binding GoogleUserPicture}"
@@ -55,7 +48,7 @@
             <Button
                 Text="Увійти через Google"
                 Command="{Binding GoogleLoginCommand}"
-                IsVisible="{Binding IsAuthenticated, Converter={StaticResource InvertedBoolConverter}}" />
+                IsVisible="{Binding IsSignedOut}" />
 
             <Button
                 Text="Вийти з профілю"
@@ -72,8 +65,6 @@
                 FontSize="16"
                 HorizontalOptions="Center"
                 HorizontalTextAlignment="Center" />
-
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>
