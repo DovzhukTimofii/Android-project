@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Movies" xml:space="preserve"><value>Movies</value></data>
+  <data name="MovieCatalog" xml:space="preserve"><value>Movie catalog</value></data>
+  <data name="ShowFavorites" xml:space="preserve"><value>Show favorites</value></data>
+  <data name="ShowAll" xml:space="preserve"><value>Show all</value></data>
+  <data name="AddMovie" xml:space="preserve"><value>Add movie</value></data>
+  <data name="AddToFavorites" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="FavoritesEmpty" xml:space="preserve"><value>Favorites list is empty.</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="NoData" xml:space="preserve"><value>No data found.</value></data>
+  <data name="GoogleSignIn" xml:space="preserve"><value>Sign in with Google</value></data>
+  <data name="SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="SignedOut" xml:space="preserve"><value>Google sign-in has not been completed</value></data>
+  <data name="SignedInFormat" xml:space="preserve"><value>Signed in: {0}</value></data>
+  <data name="OAuthNotConfigured" xml:space="preserve"><value>Google OAuth requires a Client ID</value></data>
+  <data name="LogoutDone" xml:space="preserve"><value>Signed out of the Google profile.</value></data>
+  <data name="Welcome" xml:space="preserve"><value>Movie Catalog</value></data>
+  <data name="AuthHint" xml:space="preserve"><value>Sign in to add movies and manage favorites.</value></data>
+  <data name="UserProfile" xml:space="preserve"><value>User profile</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="English" xml:space="preserve"><value>English</value></data>
+  <data name="Ukrainian" xml:space="preserve"><value>Ukrainian</value></data>
+  <data name="NotSignedIn" xml:space="preserve"><value>You are not signed in.</value></data>
+  <data name="FavoritesCountFormat" xml:space="preserve"><value>Favorite movies: {0}</value></data>
+  <data name="CreatedCountFormat" xml:space="preserve"><value>Movies added by you: {0}</value></data>
+  <data name="AuthenticationRequired" xml:space="preserve"><value>Sign in with Google to use this feature.</value></data>
+</root>
