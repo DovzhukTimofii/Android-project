@@ -9,10 +9,7 @@
     Title="Деталі фільму">
 
     <ScrollView>
-
-        <VerticalStackLayout
-            Padding="20"
-            Spacing="18">
+        <VerticalStackLayout Padding="20" Spacing="18">
 
             <Label
                 Text="Детальна інформація"
@@ -33,17 +30,20 @@
                 FontAttributes="Bold"
                 HorizontalTextAlignment="Center" />
 
+            <Label
+                Text="👤 Додано користувачем"
+                IsVisible="{Binding IsUserCreated}"
+                FontAttributes="Bold"
+                HorizontalTextAlignment="Center" />
+
             <Border
                 Padding="15"
                 StrokeThickness="1"
                 StrokeShape="RoundRectangle 10">
 
-                <VerticalStackLayout
-                    Spacing="12">
-
+                <VerticalStackLayout Spacing="12">
                     <Label
-                        Text="{Binding ReleaseDate,
-                                     StringFormat='Рік випуску: {0}'}"
+                        Text="{Binding ReleaseDate, StringFormat='Рік випуску: {0}'}"
                         FontSize="18"
                         FontAttributes="Bold" />
 
@@ -57,25 +57,27 @@
                         FontSize="16" />
 
                     <Label
-                        Text="{Binding Id,
-                                     StringFormat='ID: {0}'}"
+                        Text="{Binding Id, StringFormat='ID: {0}'}"
                         FontSize="13"
                         Opacity="0.6" />
-
                 </VerticalStackLayout>
-
             </Border>
+
             <Button
                 x:Name="FavoriteButton"
                 Text="Додати до улюблених"
                 Clicked="OnFavoriteClicked" />
+
+            <Button
+                Text="Видалити фільм"
+                IsVisible="{Binding IsUserCreated}"
+                Clicked="OnDeleteMovieClicked" />
+
             <Button
                 Text="Повернутися до каталогу"
                 Clicked="OnBackClicked"
                 Margin="0,10,0,20" />
 
         </VerticalStackLayout>
-
     </ScrollView>
-
 </ContentPage>
