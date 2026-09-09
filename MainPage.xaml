@@ -1,70 +1,32 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:viewmodel="clr-namespace:MauiStartup.ViewModels"
     x:Class="MauiStartup.MainPage"
-    x:DataType="viewmodel:MainPageModel"
-    Title="Профіль">
+    x:DataType="viewmodel:MainPageModel">
 
     <ScrollView>
         <VerticalStackLayout Padding="30" Spacing="18">
-            <Label
-                Text="Google-профіль"
-                FontSize="30"
-                FontAttributes="Bold"
-                HorizontalOptions="Center" />
+            <Label Text="{Binding WelcomeText}" FontSize="30" FontAttributes="Bold" HorizontalOptions="Center" />
 
             <Border Padding="18" StrokeThickness="1" StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="12">
-                    <Image
-                        Source="{Binding GoogleUserPicture}"
-                        HeightRequest="96"
-                        WidthRequest="96"
-                        Aspect="AspectFill"
-                        HorizontalOptions="Center"
-                        IsVisible="{Binding IsAuthenticated}" />
-
-                    <Label
-                        Text="{Binding GoogleUserName}"
-                        FontSize="22"
-                        FontAttributes="Bold"
-                        HorizontalTextAlignment="Center"
-                        IsVisible="{Binding IsAuthenticated}" />
-
-                    <Label
-                        Text="{Binding GoogleUserEmail}"
-                        FontSize="15"
-                        HorizontalTextAlignment="Center"
-                        IsVisible="{Binding IsAuthenticated}" />
-
-                    <Label
-                        Text="{Binding AuthStatusText}"
-                        HorizontalTextAlignment="Center" />
+                    <Image Source="{Binding GoogleUserPicture}" HeightRequest="96" WidthRequest="96" Aspect="AspectFill" HorizontalOptions="Center" IsVisible="{Binding IsAuthenticated}">
+                        <Image.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenProfileCommand}" />
+                        </Image.GestureRecognizers>
+                    </Image>
+                    <Label Text="{Binding GoogleUserName}" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" IsVisible="{Binding IsAuthenticated}" />
+                    <Label Text="{Binding GoogleUserEmail}" FontSize="15" HorizontalTextAlignment="Center" IsVisible="{Binding IsAuthenticated}" />
+                    <Label Text="{Binding AuthStatusText}" HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>
             </Border>
 
-            <Button
-                Text="Увійти через Google"
-                Command="{Binding GoogleLoginCommand}"
-                IsVisible="{Binding IsSignedOut}" />
-
-            <Button
-                Text="Вийти з профілю"
-                Command="{Binding GoogleLogoutCommand}"
-                IsVisible="{Binding IsAuthenticated}" />
-
-            <Label
-                Text="Після входу стають доступними додавання фільмів та керування улюбленими."
-                FontSize="14"
-                HorizontalTextAlignment="Center" />
-
-            <Label
-                Text="{Binding Message}"
-                FontSize="16"
-                HorizontalOptions="Center"
-                HorizontalTextAlignment="Center" />
+            <Button Text="{Binding SignInText}" Command="{Binding GoogleLoginCommand}" IsVisible="{Binding IsSignedOut}" />
+            <Button Text="{Binding SignOutText}" Command="{Binding GoogleLogoutCommand}" IsVisible="{Binding IsAuthenticated}" />
+            <Label Text="{Binding AuthHintText}" FontSize="14" HorizontalTextAlignment="Center" />
+            <Label Text="{Binding Message}" FontSize="16" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
