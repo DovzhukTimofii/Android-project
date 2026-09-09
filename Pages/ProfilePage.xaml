@@ -3,30 +3,34 @@
     x:Class="MauiStartup.Pages.ProfilePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Профіль">
+    xmlns:viewmodel="clr-namespace:MauiStartup.ViewModels"
+    x:DataType="viewmodel:ProfilePageModel"
+    Title="{Binding PageTitle}">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="20"
-        VerticalOptions="Center">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="18">
+            <Label Text="{Binding PageTitle}" FontSize="30" FontAttributes="Bold" HorizontalOptions="Center" />
 
-        <Label
-            Text="Профіль користувача"
-            FontSize="28"
-            FontAttributes="Bold"
-            HorizontalOptions="Center" />
+            <Border Padding="18" StrokeThickness="1" StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="10">
+                    <Image Source="{Binding PictureUrl}" HeightRequest="110" WidthRequest="110" Aspect="AspectFill" HorizontalOptions="Center" IsVisible="{Binding IsAuthenticated}" />
+                    <Label Text="{Binding UserName}" FontSize="23" FontAttributes="Bold" HorizontalTextAlignment="Center" IsVisible="{Binding IsAuthenticated}" />
+                    <Label Text="{Binding UserEmail}" FontSize="15" HorizontalTextAlignment="Center" IsVisible="{Binding IsAuthenticated}" />
+                    <Label Text="{Binding StatusText}" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
 
-        <Label
-            x:Name="StatusLabel"
-            FontSize="18"
-            HorizontalTextAlignment="Center" />
+            <Border Padding="16" StrokeThickness="1" StrokeShape="RoundRectangle 14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding FavoritesText}" FontSize="16" />
+                    <Label Text="{Binding CreatedMoviesText}" FontSize="16" />
+                </VerticalStackLayout>
+            </Border>
 
-        <Label
-            x:Name="EmailLabel"
-            FontSize="18"
-            HorizontalTextAlignment="Center"
-            IsVisible="False" />
+            <Label Text="{Binding LanguageLabel}" FontSize="18" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}" />
 
-    </VerticalStackLayout>
-
+            <Button Text="{Binding SignOutText}" Command="{Binding LogoutCommand}" IsVisible="{Binding IsAuthenticated}" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
