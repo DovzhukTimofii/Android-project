@@ -6,33 +6,32 @@ namespace MauiStartup.Pages;
 public partial class MovieDetailsPage : ContentPage
 {
     private readonly Movie _movie;
-    private readonly FavoritesService _favoritesService;
+    private readonly MovieService _movieService;
 
     public MovieDetailsPage(
         Movie movie,
-        FavoritesService favoritesService)
+        MovieService movieService)
     {
         InitializeComponent();
 
         _movie = movie;
-        _favoritesService = favoritesService;
-
+        _movieService = movieService;
         BindingContext = movie;
 
         UpdateFavoriteButton();
     }
 
-    private void OnFavoriteClicked(
+    private async void OnFavoriteClicked(
         object sender,
         EventArgs e)
     {
-        if (_favoritesService.IsFavorite(_movie))
+        if (_movieService.IsFavorite(_movie))
         {
-            _favoritesService.RemoveFavorite(_movie);
+            await _movieService.RemoveFavoriteAsync(_movie);
         }
         else
         {
-            _favoritesService.AddFavorite(_movie);
+            await _movieService.AddFavoriteAsync(_movie);
         }
 
         UpdateFavoriteButton();
@@ -40,16 +39,33 @@ public partial class MovieDetailsPage : ContentPage
 
     private void UpdateFavoriteButton()
     {
-        if (_favoritesService.IsFavorite(_movie))
+        FavoriteButton.Text = _movieService.IsFavorite(_movie)
+            ? "Видалити з улюблених"
+            : "Додати до улюблених";
+    }
+
+    private async void OnDeleteMovieClicked(
+        object sender,
+        EventArgs e)
+    {
+        if (!_movie.IsUserCreated)
         {
-            FavoriteButton.Text =
-                "Видалити з улюблених";
+            return;
         }
-        else
+
+        var confirmed = await DisplayAlert(
+            "Видалення",
+            "Видалити цей фільм зі сховища?",
+            "Так",
+            "Ні");
+
+        if (!confirmed)
         {
-            FavoriteButton.Text =
-                "Додати до улюблених";
+            return;
         }
+
+        await _movieService.DeleteUserMovieAsync(_movie);
+        await Navigation.PopModalAsync();
     }
 
     private async void OnBackClicked(
