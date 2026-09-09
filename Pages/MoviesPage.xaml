@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="MauiStartup.Pages.MoviesPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:MauiStartup.Models"
+    xmlns:controls="clr-namespace:MauiStartup.Controls"
+    x:Name="RootPage"
+    Title="Фільми">
+
+    <Grid
+        Padding="15"
+        RowDefinitions="Auto,Auto,*">
+
+        <Label
+            Text="Каталог фільмів"
+            FontSize="28"
+            FontAttributes="Bold"
+            HorizontalOptions="Center"
+            Margin="0,0,0,10" />
+
+       <Grid
+            Grid.Row="1"
+            ColumnDefinitions="*,*"
+            ColumnSpacing="10"
+            Margin="0,0,0,10">
+
+            <Button
+                Grid.Column="0"
+                Text="{Binding FavoritesButtonText}"
+                Command="{Binding ToggleFavoritesCommand}" />
+
+            <Button
+                Grid.Column="1"
+                Text="Додати фільм"
+                Command="{Binding AddMovieCommand}" />
+
+        </Grid>
+
+        <CollectionView
+            x:Name="MoviesCollection"
+            Grid.Row="2"
+
+            ItemsSource="{Binding Movies}"
+
+            ItemSizingStrategy="MeasureFirstItem"
+
+            SelectionMode="Single"
+
+            SelectedItem="{Binding SelectedMovie,
+                                   Mode=TwoWay}"
+
+            SelectionChangedCommand=
+                "{Binding MovieSelectedCommand}"
+
+            SelectionChangedCommandParameter=
+                "{Binding Source={x:Reference MoviesCollection},
+                          Path=SelectedItem}"
+
+            RemainingItemsThreshold="3"
+
+            RemainingItemsThresholdReachedCommand=
+                "{Binding LoadMoreCommand}">
+
+            <CollectionView.ItemTemplate>
+
+                <DataTemplate x:DataType="models:Movie">
+
+                    <SwipeView
+                        SwipeStarted="OnSwipeStarted"
+                        SwipeEnded="OnSwipeEnded">
+
+                        <!--
+                            RightItems означает:
+                            показать действия при свайпе ВЛЕВО.
+                        -->
+                        <SwipeView.RightItems>
+
+                            <SwipeItems Mode="Reveal">
+
+                                <SwipeItem
+                                    Text="{Binding Source={x:Reference RootPage},
+                                                   Path=BindingContext.SwipeActionText}"
+
+                                    BackgroundColor="DarkOrange"
+
+                                    Command="{Binding Source={x:Reference RootPage},
+                                                     Path=BindingContext.ManageFavoriteCommand}"
+
+                                    CommandParameter="{Binding .}" />
+
+                            </SwipeItems>
+
+                        </SwipeView.RightItems>
+
+                        <controls:MovieCardView
+                            Model="{Binding .}" />
+
+                    </SwipeView>
+
+                </DataTemplate>
+
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.Footer>
+
+                <VerticalStackLayout Padding="10">
+
+                    <ActivityIndicator
+                        IsRunning="{Binding IsLoading}"
+                        IsVisible="{Binding IsLoading}"
+                        HorizontalOptions="Center" />
+
+                    <Label
+                        Text="{Binding StatusMessage}"
+                        HorizontalOptions="Center" />
+
+                </VerticalStackLayout>
+
+            </CollectionView.Footer>
+
+        </CollectionView>
+
+    </Grid>
+
+</ContentPage>

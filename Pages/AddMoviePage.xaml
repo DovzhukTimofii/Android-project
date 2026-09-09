@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="MauiStartup.Pages.AddMoviePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Новий фільм">
+
+    <ScrollView>
+
+        <VerticalStackLayout
+            Padding="20"
+            Spacing="15">
+
+            <Label
+                Text="Додати новий фільм"
+                FontSize="28"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
+
+            <Entry
+                Placeholder="Назва фільму"
+                Text="{Binding Movie.Title}" />
+
+            <Entry
+                Placeholder="Рік випуску"
+                Keyboard="Numeric"
+                Text="{Binding Movie.ReleaseYear}" />
+
+            <Editor
+                Placeholder="Опис фільму"
+                Text="{Binding Movie.Description}"
+                AutoSize="TextChanges"
+                HeightRequest="120" />
+
+            <Border
+                Padding="10"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 10">
+
+                <Image
+                    Source="{Binding Movie.PosterPath}"
+                    HeightRequest="250"
+                    Aspect="AspectFit" />
+
+            </Border>
+
+            <Button
+                Text="Обрати постер"
+                Command="{Binding SelectPosterCommand}" />
+
+            <Label
+                Text="{Binding Message}"
+                HorizontalTextAlignment="Center" />
+
+            <Grid
+                ColumnDefinitions="*,*"
+                ColumnSpacing="10">
+
+                <Button
+                    Grid.Column="0"
+                    Text="Скасувати"
+                    Command="{Binding CancelCommand}" />
+
+                <Button
+                    Grid.Column="1"
+                    Text="Зберегти"
+                    Command="{Binding SaveCommand}" />
+
+            </Grid>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>

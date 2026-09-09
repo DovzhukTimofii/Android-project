@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentView
+    x:Class="MauiStartup.Controls.MovieCardView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:MauiStartup.Controls"
+    x:Name="this">
+
+    <ContentView.Resources>
+
+        <Style
+            x:Key="MovieTitleStyle"
+            TargetType="Label">
+
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+            <Setter Property="MaxLines" Value="2" />
+
+        </Style>
+
+        <Style
+            x:Key="MovieYearStyle"
+            TargetType="Label">
+
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Opacity" Value="0.75" />
+
+        </Style>
+
+        <Style
+            x:Key="MovieDescriptionStyle"
+            TargetType="Label">
+
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="LineBreakMode" Value="TailTruncation" />
+            <Setter Property="MaxLines" Value="4" />
+
+        </Style>
+
+    </ContentView.Resources>
+
+    <Border
+        Padding="12"
+        Margin="5"
+        BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+        StrokeThickness="1"
+        StrokeShape="RoundRectangle 12"
+        BindingContext="{x:Reference this}"
+        x:DataType="controls:MovieCardView">
+
+        <Grid
+            x:Name="CardGrid"
+            ColumnDefinitions="110,*"
+            RowDefinitions="Auto,Auto,*"
+            ColumnSpacing="15">
+
+            <!-- Адаптивность -->
+            <VisualStateManager.VisualStateGroups>
+
+                <VisualStateGroup x:Name="WindowStates">
+
+                    <VisualState x:Name="Normal">
+
+                        <VisualState.StateTriggers>
+                            <StateTrigger IsActive="True" />
+                        </VisualState.StateTriggers>
+
+                        <VisualState.Setters>
+
+                            <Setter
+                                TargetName="PosterImage"
+                                Property="Image.WidthRequest"
+                                Value="100" />
+
+                            <Setter
+                                TargetName="PosterImage"
+                                Property="Image.HeightRequest"
+                                Value="150" />
+
+                        </VisualState.Setters>
+
+                    </VisualState>
+
+                    <VisualState x:Name="Wide">
+
+                        <VisualState.StateTriggers>
+
+                            <AdaptiveTrigger
+                                MinWindowWidth="700" />
+
+                        </VisualState.StateTriggers>
+
+                        <VisualState.Setters>
+
+                            <Setter
+                                TargetName="PosterImage"
+                                Property="Image.WidthRequest"
+                                Value="150" />
+
+                            <Setter
+                                TargetName="PosterImage"
+                                Property="Image.HeightRequest"
+                                Value="210" />
+
+                            <Setter
+                                TargetName="TitleLabel"
+                                Property="Label.FontSize"
+                                Value="24" />
+
+                        </VisualState.Setters>
+
+                    </VisualState>
+
+                </VisualStateGroup>
+
+            </VisualStateManager.VisualStateGroups>
+
+            <Image
+                x:Name="PosterImage"
+                Grid.RowSpan="3"
+                Source="{Binding Model.ImageUrl}"
+                WidthRequest="100"
+                HeightRequest="150"
+                Aspect="AspectFill" />
+
+            <VerticalStackLayout
+                Grid.Column="1"
+                Grid.RowSpan="3"
+                Spacing="8">
+
+                <Label
+                    x:Name="TitleLabel"
+                    Text="{Binding Model.Title}"
+                    Style="{StaticResource MovieTitleStyle}" />
+                <Label
+                    Text="⭐ Улюблене"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    IsVisible="{Binding Model.IsFavorite}" />
+                <Label
+                    Text="👤 Додано користувачем"
+                    FontSize="13"
+                    FontAttributes="Italic"
+                    IsVisible="{Binding Model.IsUserCreated}" />
+                <Label
+                    Text="{Binding Model.ReleaseDate,
+                                   StringFormat='Рік: {0}'}"
+                    Style="{StaticResource MovieYearStyle}" />
+
+                <Label
+                    Text="{Binding Model.Description}"
+                    Style="{StaticResource MovieDescriptionStyle}" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+    </Border>
+
+</ContentView>
