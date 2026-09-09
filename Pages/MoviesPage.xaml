@@ -9,19 +9,23 @@
     x:Name="RootPage"
     Title="Фільми">
 
-    <Grid
-        Padding="15"
-        RowDefinitions="Auto,Auto,*">
-
+    <Grid Padding="15" RowDefinitions="Auto,Auto,Auto,*">
         <Label
             Text="Каталог фільмів"
             FontSize="28"
             FontAttributes="Bold"
             HorizontalOptions="Center"
-            Margin="0,0,0,10" />
+            Margin="0,0,0,6" />
 
-       <Grid
+        <Label
             Grid.Row="1"
+            Text="{Binding AccountStatusText}"
+            FontSize="13"
+            HorizontalTextAlignment="Center"
+            Margin="0,0,0,8" />
+
+        <Grid
+            Grid.Row="2"
             ColumnDefinitions="*,*"
             ColumnSpacing="10"
             Margin="0,0,0,10">
@@ -29,99 +33,62 @@
             <Button
                 Grid.Column="0"
                 Text="{Binding FavoritesButtonText}"
-                Command="{Binding ToggleFavoritesCommand}" />
+                Command="{Binding ToggleFavoritesCommand}"
+                IsEnabled="{Binding CanUseProtectedFeatures}" />
 
             <Button
                 Grid.Column="1"
                 Text="Додати фільм"
-                Command="{Binding AddMovieCommand}" />
-
+                Command="{Binding AddMovieCommand}"
+                IsEnabled="{Binding CanUseProtectedFeatures}" />
         </Grid>
 
         <CollectionView
             x:Name="MoviesCollection"
-            Grid.Row="2"
-
+            Grid.Row="3"
             ItemsSource="{Binding Movies}"
-
             ItemSizingStrategy="MeasureFirstItem"
-
             SelectionMode="Single"
-
-            SelectedItem="{Binding SelectedMovie,
-                                   Mode=TwoWay}"
-
-            SelectionChangedCommand=
-                "{Binding MovieSelectedCommand}"
-
-            SelectionChangedCommandParameter=
-                "{Binding Source={x:Reference MoviesCollection},
-                          Path=SelectedItem}"
-
+            SelectedItem="{Binding SelectedMovie, Mode=TwoWay}"
+            SelectionChangedCommand="{Binding MovieSelectedCommand}"
+            SelectionChangedCommandParameter="{Binding Source={x:Reference MoviesCollection}, Path=SelectedItem}"
             RemainingItemsThreshold="3"
-
-            RemainingItemsThresholdReachedCommand=
-                "{Binding LoadMoreCommand}">
+            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
 
             <CollectionView.ItemTemplate>
-
                 <DataTemplate x:DataType="models:Movie">
-
                     <SwipeView
                         SwipeStarted="OnSwipeStarted"
                         SwipeEnded="OnSwipeEnded">
 
-                        <!--
-                            RightItems означает:
-                            показать действия при свайпе ВЛЕВО.
-                        -->
                         <SwipeView.RightItems>
-
                             <SwipeItems Mode="Reveal">
-
                                 <SwipeItem
-                                    Text="{Binding Source={x:Reference RootPage},
-                                                   Path=BindingContext.SwipeActionText}"
-
+                                    Text="{Binding Source={x:Reference RootPage}, Path=BindingContext.SwipeActionText}"
                                     BackgroundColor="DarkOrange"
-
-                                    Command="{Binding Source={x:Reference RootPage},
-                                                     Path=BindingContext.ManageFavoriteCommand}"
-
+                                    IsEnabled="{Binding Source={x:Reference RootPage}, Path=BindingContext.CanUseProtectedFeatures}"
+                                    Command="{Binding Source={x:Reference RootPage}, Path=BindingContext.ManageFavoriteCommand}"
                                     CommandParameter="{Binding .}" />
-
                             </SwipeItems>
-
                         </SwipeView.RightItems>
 
-                        <controls:MovieCardView
-                            Model="{Binding .}" />
-
+                        <controls:MovieCardView Model="{Binding .}" />
                     </SwipeView>
-
                 </DataTemplate>
-
             </CollectionView.ItemTemplate>
 
             <CollectionView.Footer>
-
                 <VerticalStackLayout Padding="10">
-
                     <ActivityIndicator
                         IsRunning="{Binding IsLoading}"
                         IsVisible="{Binding IsLoading}"
                         HorizontalOptions="Center" />
-
                     <Label
                         Text="{Binding StatusMessage}"
-                        HorizontalOptions="Center" />
-
+                        HorizontalOptions="Center"
+                        HorizontalTextAlignment="Center" />
                 </VerticalStackLayout>
-
             </CollectionView.Footer>
-
         </CollectionView>
-
     </Grid>
-
 </ContentPage>
