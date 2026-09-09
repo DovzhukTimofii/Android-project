@@ -7,6 +7,7 @@ public class MovieService
 {
     private readonly HttpClient _httpClient;
     private readonly StorageService _storageService;
+    private readonly AuthService _authService;
 
     private readonly List<Movie> _apiMovies = new();
     private readonly List<Movie> _userMovies = new();
@@ -18,10 +19,14 @@ public class MovieService
     public event EventHandler<Movie>? MovieRemoved;
     public event EventHandler<Movie>? MovieChanged;
 
-    public MovieService(HttpClient httpClient, StorageService storageService)
+    public MovieService(
+        HttpClient httpClient,
+        StorageService storageService,
+        AuthService authService)
     {
         _httpClient = httpClient;
         _storageService = storageService;
+        _authService = authService;
     }
 
     public IReadOnlyList<Movie> UserMovies => _userMovies;
@@ -100,9 +105,7 @@ public class MovieService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"Помилка API: {ex.Message}");
-
+            System.Diagnostics.Debug.WriteLine($"Помилка API: {ex.Message}");
             return new List<Movie>();
         }
     }
@@ -112,6 +115,7 @@ public class MovieService
         Stream posterStream,
         string posterFileName)
     {
+        EnsureAuthenticated();
         await InitializeAsync();
 
         var posterPath = await _storageService.SavePosterAsync(
@@ -139,6 +143,8 @@ public class MovieService
 
     public async Task DeleteUserMovieAsync(Movie movie)
     {
+        EnsureAuthenticated();
+
         if (!movie.IsUserCreated)
         {
             return;
@@ -158,6 +164,8 @@ public class MovieService
 
     public async Task AddFavoriteAsync(Movie movie)
     {
+        EnsureAuthenticated();
+
         _favoriteIds.Add(movie.Id);
         movie.IsFavorite = true;
 
@@ -171,6 +179,8 @@ public class MovieService
 
     public async Task RemoveFavoriteAsync(Movie movie)
     {
+        EnsureAuthenticated();
+
         _favoriteIds.Remove(movie.Id);
         movie.IsFavorite = false;
 
@@ -180,6 +190,15 @@ public class MovieService
         }
 
         MovieChanged?.Invoke(this, movie);
+    }
+
+    private void EnsureAuthenticated()
+    {
+        if (!_authService.IsAuthenticated)
+        {
+            throw new InvalidOperationException(
+                "Для цієї дії необхідно увійти через Google.");
+        }
     }
 
     private Task SaveUserMoviesAsync() =>
