@@ -16,6 +16,9 @@ public partial class MainPageModel : ObservableObject
     private bool isAuthenticated;
 
     [ObservableProperty]
+    private bool isSignedOut = true;
+
+    [ObservableProperty]
     private bool isAuthConfigured;
 
     [ObservableProperty]
@@ -81,6 +84,7 @@ public partial class MainPageModel : ObservableObject
     {
         IsAuthConfigured = _authService.IsConfigured;
         IsAuthenticated = _authService.IsAuthenticated;
+        IsSignedOut = !IsAuthenticated;
 
         var user = _authService.CurrentUser;
         GoogleUserName = user?.Name ?? string.Empty;
