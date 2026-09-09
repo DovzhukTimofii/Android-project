@@ -1,74 +1,96 @@
-using MauiStartup.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.Generic;
+using MauiStartup.Services;
 
 namespace MauiStartup.ViewModels;
 
 public partial class MainPageModel : ObservableObject
 {
-    private readonly AppStateService _appStateService;
-
-    public MainPageModel(AppStateService appStateService)
-    {
-        _appStateService = appStateService;
-    }
-    private readonly Dictionary<string, string> _users = new()
-    {
-        { "student@gmail.com", "123456" },
-        { "admin@gmail.com", "admin123" },
-        { "test@gmail.com", "password" }
-    };
-
-    [ObservableProperty]
-    private string email = string.Empty;
-
-    [ObservableProperty]
-    private string password = string.Empty;
+    private readonly AuthService _authService;
+    private bool _initialized;
 
     [ObservableProperty]
     private string message = string.Empty;
 
-    [RelayCommand]
-    private void CheckRegistration()
+    [ObservableProperty]
+    private bool isAuthenticated;
+
+    [ObservableProperty]
+    private bool isAuthConfigured;
+
+    [ObservableProperty]
+    private string googleUserName = string.Empty;
+
+    [ObservableProperty]
+    private string googleUserEmail = string.Empty;
+
+    [ObservableProperty]
+    private string googleUserPicture = string.Empty;
+
+    [ObservableProperty]
+    private string authStatusText = "Вхід через Google не виконано";
+
+    public MainPageModel(AuthService authService)
     {
-        Message = string.Empty;
+        _authService = authService;
+        _authService.AuthenticationChanged += OnAuthenticationChanged;
+        UpdateAuthState();
+    }
 
-        if (string.IsNullOrWhiteSpace(Email))
+    public async Task InitializeAsync()
+    {
+        if (_initialized)
         {
-            Message = "Введіть електронну пошту.";
             return;
         }
 
-        if (!Email.Contains("@") || !Email.Contains("."))
-        {
-            Message = "Некоректний формат електронної пошти.";
-            return;
-        }
+        _initialized = true;
+        await _authService.InitializeAsync();
+        UpdateAuthState();
+    }
 
-        if (string.IsNullOrWhiteSpace(Password))
+    [RelayCommand]
+    private async Task GoogleLoginAsync()
+    {
+        try
         {
-            Message = "Введіть пароль.";
-            return;
+            Message = string.Empty;
+            await _authService.LoginAsync();
+            UpdateAuthState();
         }
+        catch (Exception ex)
+        {
+            Message = ex.Message;
+        }
+    }
 
-        if (_users.TryGetValue(Email, out string? savedPassword))
-        {
-            if (savedPassword == Password)
-            {
-                _appStateService.IsRegistered = true;
-                _appStateService.UserEmail = Email;
+    [RelayCommand]
+    private async Task GoogleLogoutAsync()
+    {
+        await _authService.LogoutAsync();
+        Message = "Вихід з Google-профілю виконано.";
+        UpdateAuthState();
+    }
 
-                Message = "Користувач зареєстрований.";
-            }
-            else
-            {
-                Message = "Неправильний пароль.";
-            }
-        }
-        else
-        {
-            Message = "Користувача не знайдено.";
-        }
+    private void OnAuthenticationChanged(object? sender, EventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(UpdateAuthState);
+    }
+
+    private void UpdateAuthState()
+    {
+        IsAuthConfigured = _authService.IsConfigured;
+        IsAuthenticated = _authService.IsAuthenticated;
+
+        var user = _authService.CurrentUser;
+        GoogleUserName = user?.Name ?? string.Empty;
+        GoogleUserEmail = user?.Email ?? string.Empty;
+        GoogleUserPicture = user?.PictureUrl ?? string.Empty;
+
+        AuthStatusText = IsAuthenticated
+            ? $"Виконано вхід: {GoogleUserName}"
+            : IsAuthConfigured
+                ? "Вхід через Google не виконано"
+                : "Google OAuth потребує Client ID";
     }
 }
