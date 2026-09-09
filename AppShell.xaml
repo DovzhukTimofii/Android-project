@@ -5,21 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:MauiStartup"
     xmlns:pages="clr-namespace:MauiStartup.Pages"
-    Title="MauiStartup"
+    Title="Movie Catalog"
     FlyoutBehavior="Flyout">
 
-    <ShellContent
-        Title="Головна"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
-
-    <ShellContent
-        Title="Профіль"
-        ContentTemplate="{DataTemplate pages:ProfilePage}"
-        Route="ProfilePage" />
-    <ShellContent
-        Title="Фільми"
-        ContentTemplate="{DataTemplate pages:MoviesPage}"
-        Route="MoviesPage" />
-
+    <ShellContent x:Name="HomeItem" Title="Home" ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
+    <ShellContent x:Name="ProfileItem" Title="Profile" ContentTemplate="{DataTemplate pages:ProfilePage}" Route="ProfilePage" />
+    <ShellContent x:Name="MoviesItem" Title="Movies" ContentTemplate="{DataTemplate pages:MoviesPage}" Route="MoviesPage" />
 </Shell>
