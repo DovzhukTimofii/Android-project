@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using MauiStartup.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MauiStartup;
 
@@ -39,7 +40,7 @@ public class MainActivity : MauiAppCompatActivity
     private static void HandleOAuthIntent(Intent? intent)
     {
         var data = intent?.DataString;
-        if (string.IsNullOrWhiteSpace(data) || !Uri.TryCreate(data, UriKind.Absolute, out var uri))
+        if (string.IsNullOrWhiteSpace(data) || !System.Uri.TryCreate(data, UriKind.Absolute, out var uri))
         {
             return;
         }
